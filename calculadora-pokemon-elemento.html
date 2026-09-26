@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Rota Pokémon</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .selector-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-clear {
+      background: none;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+
+    .btn-clear:hover {
+      background-color: #334155;
+      color: var(--text);
+    }
+
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px;
+    }
+
+    .type-chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      color: #ffffff;
+      opacity: 0.45;
+      text-transform: capitalize;
+    }
+
+    .type-chip.selected {
+      opacity: 1;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      border-color: #ffffff;
+    }
+
+    /* Cores Oficiais dos Tipos */
+    .type-aco { background-color: #60a5fa; }
+    .type-agua { background-color: #38bdf8; }
+    .type-dragao { background-color: #6366f1; }
+    .type-eletrico { background-color: #eab308; color: #000; }
+    .type-fada { background-color: #f472b6; }
+    .type-fantasma { background-color: #7c3aed; }
+    .type-fogo { background-color: #f97316; }
+    .type-gelo { background-color: #67e8f9; color: #000; }
+    .type-inseto { background-color: #84cc16; }
+    .type-lutador { background-color: #dc2626; }
+    .type-normal { background-color: #94a3b8; }
+    .type-pedra { background-color: #a16207; }
+    .type-planta { background-color: #22c55e; }
+    .type-psiquico { background-color: #ec4899; }
+    .type-sombrio { background-color: #475569; }
+    .type-terra { background-color: #d97706; }
+    .type-veneno { background-color: #a855f7; }
+    .type-voador { background-color: #818cf8; }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .result-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .result-header {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .result-header.atk { color: #f87171; }
+    .result-header.def { color: #4ade80; }
+
+    .item-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .list-item.danger {
+      border-left-color: var(--danger);
+    }
+
+    .list-item.good {
+      border-left-color: var(--success);
+    }
+
+    .list-item .name {
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .list-item .metric {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Calculadora Estratégica de Rota Pokémon</h1>
+      <p class="subtitle">Selecione os elementos presentes no local para identificar os melhores atacantes e defensores</p>
+    </header>
+
+    <div class="selector-card">
+      <div class="section-title">
+        <span>Elementos da Região</span>
+        <button class="btn-clear" id="btnClear">Limpar Seleção</button>
+      </div>
+      <div class="type-grid" id="typeButtons"></div>
+    </div>
+
+    <div class="results-grid">
+      <!-- Coluna Ofensiva -->
+      <div class="result-card">
+        <div class="result-header atk">⚔️ Melhores Elementos para Atacar</div>
+        <p class="subtitle" style="margin-bottom: 12px;">Elementos que acertam o local com dano super efetivo (2x):</p>
+        <ul class="item-list" id="attackList">
+          <div class="empty-state">Selecione ao menos um elemento acima.</div>
+        </ul>
+      </div>
+
+      <!-- Coluna Defensiva -->
+      <div class="result-card">
+        <div class="result-header def">🛡️ Melhores Elementos para Defender</div>
+        <p class="subtitle" style="margin-bottom: 12px;">Elementos que resistem (0.5x) ou anulam (0x) os ataques do local:</p>
+        <ul class="item-list" id="defenseList">
+          <div class="empty-state">Selecione ao menos um elemento acima.</div>
+        </ul>
+
+        <div class="result-header atk" style="margin-top: 24px; font-size: 0.95rem;">⚠️ Evite Levar (Tomam 2x):</div>
+        <ul class="item-list" id="defenseThreats">
+          <div class="empty-state">—</div>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TYPES = [
+      "aço", "água", "dragão", "elétrico", "fada", "fantasma",
+      "fogo", "gelo", "inseto", "lutador", "normal", "pedra",
+      "planta", "psíquico", "sombrio", "terra", "veneno", "voador"
+    ];
+
+    // Matriz de Multiplicadores Ofensivos: [atacante][defensor]
+    const TYPE_CHART = {
+      "aço": { "fada": 2, "gelo": 2, "pedra": 2, "aço": 0.5, "água": 0.5, "elétrico": 0.5, "fogo": 0.5 },
+      "água": { "fogo": 2, "pedra": 2, "terra": 2, "água": 0.5, "dragão": 0.5, "planta": 0.5 },
+      "dragão": { "dragão": 2, "aço": 0.5, "fada": 0 },
+      "elétrico": { "água": 2, "voador": 2, "dragão": 0.5, "elétrico": 0.5, "planta": 0.5, "terra": 0 },
+      "fada": { "dragão": 2, "lutador": 2, "sombrio": 2, "aço": 0.5, "fogo": 0.5, "veneno": 0.5 },
+      "fantasma": { "fantasma": 2, "psíquico": 2, "sombrio": 0.5, "normal": 0 },
+      "fogo": { "aço": 2, "gelo": 2, "inseto": 2, "planta": 2, "água": 0.5, "dragão": 0.5, "fogo": 0.5, "pedra": 0.5 },
+      "gelo": { "dragão": 2, "planta": 2, "terra": 2, "voador": 2, "aço": 0.5, "água": 0.5, "fogo": 0.5, "gelo": 0.5 },
+      "inseto": { "planta": 2, "psíquico": 2, "sombrio": 2, "aço": 0.5, "fada": 0.5, "fantasma": 0.5, "fogo": 0.5, "lutador": 0.5, "veneno": 0.5, "voador": 0.5 },
+      "lutador": { "aço": 2, "gelo": 2, "normal": 2, "pedra": 2, "sombrio": 2, "fada": 0.5, "inseto": 0.5, "psíquico": 0.5, "veneno": 0.5, "voador": 0.5, "fantasma": 0 },
+      "normal": { "aço": 0.5, "pedra": 0.5, "fantasma": 0 },
+      "pedra": { "fogo": 2, "gelo": 2, "inseto": 2, "voador": 2, "aço": 0.5, "lutador": 0.5, "terra": 0.5 },
+      "planta": { "água": 2, "pedra": 2, "terra": 2, "aço": 0.5, "dragão": 0.5, "fogo": 0.5, "inseto": 0.5, "planta": 0.5, "veneno": 0.5, "voador": 0.5 },
+      "psíquico": { "lutador": 2, "veneno": 2, "aço": 0.5, "psíquico": 0.5, "sombrio": 0 },
+      "sombrio": { "fantasma": 2, "psíquico": 2, "fada": 0.5, "lutador": 0.5, "sombrio": 0.5 },
+      "terra": { "aço": 2, "elétrico": 2, "fogo": 2, "pedra": 2, "veneno": 2, "inseto": 0.5, "planta": 0.5, "voador": 0 },
+      "veneno": { "fada": 2, "planta": 2, "fantasma": 0.5, "pedra": 0.5, "terra": 0.5, "veneno": 0.5, "aço": 0 },
+      "voador": { "inseto": 2, "lutador": 2, "planta": 2, "aço": 0.5, "elétrico": 0.5, "pedra": 0.5 }
+    };
+
+    function getDmg(atk, def) {
+      if (TYPE_CHART[atk] && TYPE_CHART[atk][def] !== undefined) {
+        return TYPE_CHART[atk][def];
+      }
+      return 1;
+    }
+
+    const selectedTypes = new Set();
+    const typeButtonsContainer = document.getElementById("typeButtons");
+    const attackList = document.getElementById("attackList");
+    const defenseList = document.getElementById("defenseList");
+    const defenseThreats = document.getElementById("defenseThreats");
+    const btnClear = document.getElementById("btnClear");
+
+    function renderButtons() {
+      typeButtonsContainer.innerHTML = "";
+      TYPES.forEach(t => {
+        const btn = document.createElement("div");
+        btn.className = `type-chip type-${t.normalize('NFD').replace(/[\u0300-\u036f]/g, "")} ${selectedTypes.has(t) ? 'selected' : ''}`;
+        btn.textContent = t;
+        btn.addEventListener("click", () => {
+          if (selectedTypes.has(t)) {
+            selectedTypes.delete(t);
+          } else {
+            selectedTypes.add(t);
+          }
+          renderButtons();
+          calculate();
+        });
+        typeButtonsContainer.appendChild(btn);
+      });
+    }
+
+    btnClear.addEventListener("click", () => {
+      selectedTypes.clear();
+      renderButtons();
+      calculate();
+    });
+
+    function calculate() {
+      if (selectedTypes.size === 0) {
+        attackList.innerHTML = '<div class="empty-state">Selecione ao menos um elemento acima.</div>';
+        defenseList.innerHTML = '<div class="empty-state">Selecione ao menos um elemento acima.</div>';
+        defenseThreats.innerHTML = '<div class="empty-state">—</div>';
+        return;
+      }
+
+      const active = Array.from(selectedTypes);
+
+      // 1. Análise Ofensiva: quão bom cada tipo é para ATACAR os selecionados
+      const atkScores = TYPES.map(candidate => {
+        let superEffectiveHits = 0;
+        let immuneHits = 0;
+
+        active.forEach(target => {
+          const mult = getDmg(candidate, target);
+          if (mult === 2) superEffectiveHits++;
+          if (mult === 0) immuneHits++;
+        });
+
+        return { type: candidate, superHits: superEffectiveHits, immuneHits: immuneHits };
+      });
+
+      // Ordena pelos que acertam mais alvos com 2x
+      const sortedAtk = atkScores
+        .filter(item => item.superHits > 0)
+        .sort((a, b) => b.superHits - a.superHits);
+
+      if (sortedAtk.length === 0) {
+        attackList.innerHTML = '<div class="empty-state">Nenhum elemento causa 2x em todos os tipos escolhidos simultaneamente.</div>';
+      } else {
+        attackList.innerHTML = sortedAtk.map(item => `
+          <li class="list-item good">
+            <span class="name">${item.type}</span>
+            <span class="metric">Super efetivo contra ${item.superHits} de ${active.length} tipos${item.immuneHits > 0 ? ' (⚠️ Imune contra ' + item.immuneHits + ')' : ''}</span>
+          </li>
+        `).join("");
+      }
+
+      // 2. Análise Defensiva: quão seguro é o seu tipo ao DEFENDER os ataques do local
+      const defScores = TYPES.map(candidate => {
+        let resistances = 0; // resiste (0.5x) ou anula (0x)
+        let weaknesses = 0;   // toma 2x
+
+        active.forEach(enemyAtk => {
+          const mult = getDmg(enemyAtk, candidate);
+          if (mult === 0.5 || mult === 0) resistances++;
+          if (mult === 2) weaknesses++;
+        });
+
+        return { type: candidate, resistances, weaknesses };
+      });
+
+      // Melhores defensores: prioriza mais resistências e ZERO fraquezas
+      const bestDef = [...defScores]
+        .filter(item => item.resistances > 0)
+        .sort((a, b) => (a.weaknesses - b.weaknesses) || (b.resistances - a.resistances));
+
+      // Piores opções: quem toma mais fraquezas
+      const worstDef = [...defScores]
+        .filter(item => item.weaknesses > 0)
+        .sort((a, b) => b.weaknesses - a.weaknesses);
+
+      defenseList.innerHTML = bestDef.slice(0, 6).map(item => `
+        <li class="list-item good">
+          <span class="name">${item.type}</span>
+          <span class="metric">Resiste a ${item.resistances} tipo(s)${item.weaknesses > 0 ? ' • ⚠️ Leva 2x de ' + item.weaknesses : ' • Nenhuma fraqueza'}</span>
+        </li>
+      `).join("");
+
+      defenseThreats.innerHTML = worstDef.slice(0, 5).map(item => `
+        <li class="list-item danger">
+          <span class="name">${item.type}</span>
+          <span class="metric">Leva 2x de ${item.weaknesses} tipo(s) da região</span>
+        </li>
+      `).join("");
+    }
+
+    renderButtons();
+  </script>
+</body>
+</html>
