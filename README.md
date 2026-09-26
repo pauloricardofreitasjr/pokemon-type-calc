@@ -12,7 +12,7 @@ A single-file, zero-dependency web app that helps you plan a Pokémon route. Sel
 
 ## Usage
 
-Open [calculadora-pokemon-elemento.html](calculadora-pokemon-elemento.html) directly in any modern browser (double-click the file, or serve it with any static file server). Click the type chips to toggle the elements present in the location; the results update automatically. Use **Limpar Seleção** to clear the selection.
+Open [index.html](index.html) directly in any modern browser (double-click the file, or serve it with any static file server). Click the type chips to toggle the elements present in the location; the results update automatically. Use **Limpar Seleção** to clear the selection.
 
 ## How it works
 
